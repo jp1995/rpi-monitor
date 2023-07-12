@@ -1,9 +1,0 @@
-[Unit]
-Description=NAS Hat Hunt Timer
-
-[Timer]
-OnUnitInactiveSec=1h
-Unit=nas_hat_hunt.service
-
-[Install]
-WantedBy=timers.target
