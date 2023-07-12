@@ -1,0 +1,64 @@
+---
+  - name: Init
+    hosts: iota
+    roles:
+      - init
+    become: yes
+    gather_facts: yes
+    tags: init
+
+  - name: InfluxDB
+    hosts: iota
+    roles:
+      - influxdb
+    become: yes
+    tags: influxdb
+
+  - name: Telegraf
+    hosts: iota
+    roles:
+      - telegraf
+    become: yes
+    tags: telegraf
+
+  - name: Syslog-ng
+    hosts: iota
+    roles:
+      - syslog_ng
+    become: yes
+    tags: syslog
+
+  - name: Prometheus
+    hosts: iota
+    roles:
+      - prometheus
+    become: yes
+    tags: prometheus
+
+  - name: Grafana
+    hosts: iota
+    roles:
+      - grafana
+    become: yes
+    tags: grafana
+    
+  - name: Logrotate
+    hosts: iota
+    roles:
+      - logrotate
+    become: yes
+    tags: logrotate
+    
+  - name: influxdb-telegraf-retention
+    hosts: iota
+    roles:
+      - influxdb-telegraf-retention
+    become: yes
+    tags: itr
+    
+  - name: journald
+    hosts: iota
+    roles:
+      - journald
+    become: yes
+    tags: journald

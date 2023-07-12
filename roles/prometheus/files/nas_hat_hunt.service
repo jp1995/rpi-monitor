@@ -1,0 +1,10 @@
+[Unit]
+Description=NAS Hat Hunt Service
+After=network.target
+
+[Service]
+User=pushgateway
+ExecStart=/usr/bin/python /usr/local/bin/nas_hat_hunt.py
+
+[Install]
+WantedBy=multi-user.target

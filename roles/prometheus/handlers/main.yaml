@@ -1,0 +1,37 @@
+- name: Restart prometheus
+  ansible.builtin.service:
+    name: prometheus
+    state: restarted
+
+- name: Daemon reload
+  ansible.builtin.shell: systemctl daemon-reload
+  
+- name: Restart node-exporter
+  ansible.builtin.service:
+    name: prometheus-node-exporter
+    state: restarted
+
+- name: Restart influxdb-stats-exporter
+  ansible.builtin.service:
+    name: influxdb-stats-exporter
+    state: restarted
+
+- name: Restart pgw_exporter.service
+  ansible.builtin.service:
+    name: pgw_exporter.service
+    state: restarted
+
+- name: Restart pgw_exporter.timer
+  ansible.builtin.service:
+    name: pgw_exporter.timer
+    state: restarted
+
+- name: Restart pgw_pkgs.service
+  ansible.builtin.service:
+    name: pgw_pkgs.service
+    state: restarted
+
+- name: Restart pgw_pkgs.timer
+  ansible.builtin.service:
+    name: pgw_pkgs.timer
+    state: restarted

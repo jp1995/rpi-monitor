@@ -1,0 +1,22 @@
+- name: Install logrotate
+  community.general.pacman:
+    name: logrotate
+    state: present
+    
+- name: Apply configuration
+  ansible.builtin.copy:
+    src: ../files/logrotate.conf
+    dest: /etc/logrotate.conf
+    owner: root
+    group: root
+  notify:
+    - Restart logrotate
+    
+- name: Start and enable logrotate timer
+  ansible.builtin.service:
+    name: logrotate.timer
+    state: started
+    enabled: yes
+
+
+

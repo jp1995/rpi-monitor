@@ -1,0 +1,11 @@
+[Unit]
+Description=Prometheus Influxdb stats exporter
+Documentation=https://github.com/carlpett/influxdb_stats_exporter/
+After=network-online.target
+
+[Service]
+User=prometheus
+ExecStart=/usr/local/bin/influx_stats_exporter_linux_aarch64 --ssl.skip-verify --influx.url https://localhost:8086 --influx.user admin --influx.password password
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,4 @@
+- name: Restart syslog-ng
+  ansible.builtin.service:
+    name: syslog-ng@default
+    state: restarted

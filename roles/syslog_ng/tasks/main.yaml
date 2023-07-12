@@ -1,0 +1,22 @@
+- name: Install syslog-ng
+  community.general.pacman:
+    name: syslog-ng
+    state: present
+
+- name: Install libpcre dep manually
+  community.general.pacman:
+    name: pcre
+    state: present
+
+- name: Start and enable syslog-ng service
+  ansible.builtin.service:
+    name: syslog-ng@default
+    state: started
+    enabled: yes
+
+- name: Apply configuration
+  ansible.builtin.copy:
+    src: ../files/syslog-ng.conf
+    dest: /etc/syslog-ng/syslog-ng.conf
+  notify:
+    - Restart syslog-ng

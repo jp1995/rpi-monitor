@@ -1,0 +1,12 @@
+[Unit]
+Description=Pushing package update check to PGW
+After=network-online.target
+
+[Service]
+User=pushgateway
+ExecStart=/usr/local/bin/pkgupdates
+LogLevelMax=5
+SyslogLevel=6
+
+[Install]
+WantedBy=multi-user.target

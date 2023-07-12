@@ -1,0 +1,32 @@
+- name: Install telegraf
+  kewlfft.aur.aur:
+    name: telegraf-bin
+    state: present
+    use: yay
+  become: yes
+  become_user: aur_builder
+
+# Telegraf doesn't start with default config
+
+- name: Create telegraf conf directory
+  ansible.builtin.file:
+    path: /etc/telegraf/
+    state: directory
+    owner: telegraf
+    group: telegraf
+
+- name: Apply configuration
+  ansible.builtin.copy:
+    src: ../files/telegraf.conf
+    dest: /etc/telegraf/telegraf.conf
+    owner: telegraf
+    group: telegraf
+  notify:
+    - Restart telegraf
+
+- name: Start and enable telegraf service
+  ansible.builtin.service:
+    name: telegraf
+    state: started
+    enabled: yes
+

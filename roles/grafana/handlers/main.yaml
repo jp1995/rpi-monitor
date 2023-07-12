@@ -1,0 +1,10 @@
+- name: Restart grafana
+  ansible.builtin.service:
+    name: grafana
+    state: restarted
+
+- name: set_grafana_pass
+  ansible.builtin.shell: |
+    sleep 30
+    sudo grafana-cli --homepath "/usr/share/grafana/" admin reset-admin-password "password"
+  no_log: false

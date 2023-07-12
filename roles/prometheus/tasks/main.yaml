@@ -1,0 +1,176 @@
+# --- Prometheus ---
+- name: Install prometheus
+  community.general.pacman:
+    name: prometheus
+    state: present
+
+- name: Start and enable prometheus service
+  ansible.builtin.service:
+    name: prometheus
+    state: started
+    enabled: yes
+
+- name: Apply configuration
+  ansible.builtin.copy:
+    src: ../files/prometheus.yml
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+  notify:
+    - Restart prometheus
+    
+# --- Pushgateway ---
+- name: Create pushgateway user for scripts & services
+  ansible.builtin.user:
+    name: pushgateway
+      
+- name: Install pushgateway
+  kewlfft.aur.aur:
+    name: pushgateway
+    use: yay
+    state: present
+  become: yes
+  become_user: aur_builder
+
+- name: Start and enable pushgateway service
+  ansible.builtin.service:
+    name: pushgateway
+    state: started
+    enabled: yes
+
+# --- Node exporter ---
+- name: Install node-exporter
+  community.general.pacman:
+    name: prometheus-node-exporter
+    state: present
+    
+- name: Create node-exporter service with exclude flag for cifs
+  ansible.builtin.copy:
+    src: ../files/prometheus-node-exporter.service
+    dest: /usr/lib/systemd/system/prometheus-node-exporter.service
+    owner: 
+  notify:
+    - Daemon reload
+    - Restart node-exporter
+
+- name: Start and enable node-exporter
+  ansible.builtin.service:
+    name: prometheus-node-exporter
+    state: started
+    enabled: yes
+
+# --- Systemd exporter ---
+- name: Install systemd-exporter
+  community.general.pacman:
+    name: prometheus-systemd-exporter
+    state: present
+
+- name: Start and enable systemd-exporter
+  ansible.builtin.service:
+    name: prometheus-systemd-exporter
+    state: started
+    enabled: yes
+    
+# --- InfluxDB exporter ---
+- name: Install cross compiled influxdb-stats-exporter
+  ansible.builtin.copy:
+    src: ../files/influx_stats_exporter_linux_aarch64
+    dest: /usr/local/bin/influx_stats_exporter_linux_aarch64
+    owner: prometheus
+    mode: '0700'
+
+- name: Create influxdb-stats-exporter service
+  ansible.builtin.copy:
+    src: ../files/influx_stats_exporter.service
+    dest: /etc/systemd/system/influx_stats_exporter.service
+    owner: prometheus
+  notify:
+    - Daemon reload
+    - Restart influxdb-stats-exporter
+
+- name: Start and enable influx_stats_exporter service
+  ansible.builtin.service:
+    name: influx_stats_exporter
+    state: started
+    enabled: yes
+
+# --- pgw_ exporter ---
+- name: Install dependency fping
+  community.general.pacman:
+    name: fping
+    state: present
+
+- name: Install pgw_exporter script
+  ansible.builtin.copy:
+    src: ../files/pgw_artisanal_exporter
+    dest: /usr/local/bin/pgw_artisanal_exporter
+    owner: pushgateway
+    mode: '0700'
+  notify:
+    - Restart pgw_exporter
+
+- name: Create pgw_exporter service
+  ansible.builtin.copy:
+    src: ../files/pgw_exporter.service
+    dest: /etc/systemd/system/pgw_exporter.service
+    owner: pushgateway
+  notify:
+    - Daemon reload
+    - Restart pgw_exporter.service
+
+- name: Create pgw_exporter timer
+  ansible.builtin.copy:
+    src: ../files/pgw_exporter.timer
+    dest: /etc/systemd/system/pgw_exporter.timer
+  notify:
+    - Daemon reload
+    - Restart pgw_exporter.timer
+
+- name: Start and enable pgw_exporter timer
+  ansible.builtin.service:
+    name: pgw_exporter.timer
+    state: started
+    enabled: yes
+
+- name: Start and enable pgw_exporter service
+  ansible.builtin.service:
+    name: pgw_exporter.service
+    enabled: yes
+
+# --- pgw_pkgs ---
+- name: Install pgw_pkgs script
+  ansible.builtin.copy:
+    src: ../files/pkgupdates
+    dest: /usr/local/bin/pkgupdates
+    owner: pushgateway
+    mode: '0700'
+  notify:
+    - Restart pgw_pkgs.service
+
+- name: Create pgw_pkgs service
+  ansible.builtin.copy:
+    src: ../files/pgw_pkgs.service
+    dest: /etc/systemd/system/pgw_pkgs.service
+    owner: pushgateway
+  notify:
+    - Daemon reload
+    - Restart pgw_pkgs.service
+
+- name: Create pgw_pkgs timer
+  ansible.builtin.copy:
+    src: ../files/pgw_pkgs.timer
+    dest: /etc/systemd/system/pgw_pkgs.timer
+  notify:
+    - Daemon reload
+    - Restart pgw_pkgs.timer
+
+- name: Start and enable pgw_pkgs timer
+  ansible.builtin.service:
+    name: pgw_pkgs.timer
+    state: started
+    enabled: yes
+
+- name: Start and enable pgw_pkgs service
+  ansible.builtin.service:
+    name: pgw_pkgs.service
+    enabled: yes

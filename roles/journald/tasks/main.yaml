@@ -1,0 +1,6 @@
+- name: Copy journald configuration
+  ansible.builtin.copy:
+    src: ../files/journald.conf
+    dest: /etc/systemd/journald.conf
+  notify:
+    - Restart journald

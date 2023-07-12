@@ -1,0 +1,86 @@
+- name: Install influxdb-bin_1.8
+  kewlfft.aur.aur:
+    name: influxdb-bin
+    use: yay
+    state: present
+  become: yes
+  become_user: aur_builder
+
+- name: Install gnutls-utils
+  community.general.pacman:
+    name: gnutls
+    state: present
+
+- name: Create /etc/ssl/influxdb directory
+  ansible.builtin.file:
+    path: /etc/ssl/influxdb
+    state: directory
+
+- name: Create private key
+  community.crypto.openssl_privatekey:
+    path: /etc/ssl/influxdb/server-key.pem
+    size: 2048
+    regenerate: never
+    force: false
+  notify:
+    - Restart influxdb
+
+- name: Create self-signed cert
+  community.crypto.x509_certificate:
+    path: /etc/ssl/influxdb/server-cert.pem
+    privatekey_path: /etc/ssl/influxdb/server-key.pem
+    provider: selfsigned
+  notify:
+    - Restart influxdb
+
+- name: Set owner and perms on privatekey
+  ansible.builtin.file:
+    path: /etc/ssl/influxdb/server-key.pem
+    owner: influxdb
+    group: influxdb
+
+- name: Set owner and perms on cert
+  ansible.builtin.file:
+    path: /etc/ssl/influxdb/server-cert.pem
+    owner: influxdb
+    group: influxdb
+
+- name: Start and enable influxdb service
+  ansible.builtin.service:
+    name: influxdb
+    state: started
+    enabled: yes
+
+- name: Install deps for influxdb_user
+  community.general.pacman:
+    name: 
+      - python-requests
+      - python-influxdb
+    state: present
+
+- name: Create admin user
+  community.general.influxdb_user:
+    ssl: true
+    validate_certs: false
+    user_name: admin
+    user_password: password
+    admin: true
+    login_username: admin
+    login_password: password
+
+- name: Create telegraf user
+  community.general.influxdb_user:
+    ssl: true
+    validate_certs: false
+    user_name: telegraf
+    user_password: password
+    admin: true
+    login_username: admin
+    login_password: password
+
+- name: Apply configuration
+  ansible.builtin.copy:
+    src: ../files/influxdb.conf
+    dest: /etc/influxdb/influxdb.conf
+  notify:
+    - Restart influxdb

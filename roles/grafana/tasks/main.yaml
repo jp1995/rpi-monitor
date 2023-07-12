@@ -1,0 +1,104 @@
+- name: Install grafana
+  kewlfft.aur.aur:
+    name: grafana-bin
+    state: present
+    use: yay
+  become: yes
+  become_user: aur_builder
+  notify: set_grafana_pass
+    
+- name: Start and enable grafana service
+  ansible.builtin.service:
+    name: grafana
+    state: started
+    enabled: yes
+
+- name: Apply configuration
+  ansible.builtin.copy:
+    src: ../files/grafana.ini
+    dest: /etc/grafana.ini
+    owner: grafana
+    group: grafana
+  notify:
+    - Restart grafana
+    
+- name: Flush handlers
+  meta: flush_handlers
+
+- name: Create influxdb datasource
+  community.grafana.grafana_datasource:
+    grafana_url: http://localhost:3000
+    grafana_user: admin
+    grafana_password: password
+    name: InfluxDB
+    ds_type: influxdb
+    ds_url: https://localhost:8086
+    database: telegraf
+    basic_auth_user: telegraf
+    basic_auth_password: password
+    time_interval: ">30s"
+    validate_certs: false
+    tls_skip_verify: true
+    uid: ds-influx-001
+    additional_json_data:
+        timeout: "60"
+        version: InfluxQL
+        httpMode: POST
+  notify:
+    - Restart grafana
+    
+- name: create prometheus datasource
+  community.grafana.grafana_datasource:
+    grafana_url: http://localhost:3000
+    grafana_user: admin
+    grafana_password: password
+    name: Prometheus
+    ds_type: prometheus
+    ds_url: http://localhost:9090
+    uid: ds-prometheus-001
+    additional_json_data:
+        prometheusType: Prometheus
+        prometheusVersion: "2.40.1"
+        timeInterval: "30s"
+        timeout: "60"
+  notify:
+    - Restart grafana
+    
+- name: copy 'syslog' dashboard over to guest
+  ansible.builtin.copy:
+    src: ../files/syslog.json
+    dest: /tmp/syslog.json
+    owner: grafana
+    group: grafana
+    
+- name: copy 'system_overview' dashboard over to guest
+  ansible.builtin.copy:
+    src: ../files/sysoverview.json
+    dest: /tmp/sysoverview.json
+    owner: grafana
+    group: grafana
+        
+- name: import 'syslog' dashboard
+  community.grafana.grafana_dashboard:
+    grafana_url: http://localhost:3000
+    grafana_user: admin
+    grafana_password: password
+    org_id: 1
+    state: present
+    overwrite: yes
+    path: /tmp/syslog.json
+  notify:
+    - Restart grafana
+
+- name: import 'system overview' dashboard
+  community.grafana.grafana_dashboard:
+    grafana_url: http://localhost:3000
+    grafana_user: admin
+    grafana_password: password
+    org_id: 1
+    state: present
+    overwrite: yes
+    path: /tmp/sysoverview.json
+  notify:
+    - Restart grafana
+    

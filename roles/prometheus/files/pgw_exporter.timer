@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer to run pgw_exporter every 5s
+
+[Timer]
+OnUnitInactiveSec=5s
+Unit=pgw_exporter.service
+
+[Install]
+WantedBy=timers.target

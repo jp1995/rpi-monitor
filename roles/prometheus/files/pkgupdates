@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [[ "ping -q -w 2 -c 1 cloudlfare.com" > /dev/null ]]; then
+    pac=$(checkupdates | wc -l)
+    aur=$(yay -Qum 2> /dev/null | wc -l)
+    check=$(($pac + $aur))
+    newline=$'\n'
+
+    cat <<EOF | curl --data-binary @- http://localhost:9091/metrics/job/top/instance/machine
+    pgw_pkgs{repo="official"} $pac
+    pgw_pkgs{repo="aur"} $aur
+EOF
+  
+fi

@@ -1,0 +1,36 @@
+#!/bin/bash
+
+z=$(ps aux | grep -v 'ps aux')
+newline=$'\n'
+
+# CPU Usage
+while read -r line
+do
+    cpu=$(awk '{print "pgw_cpu_usage{process=\""$11"\", pid=\""$2"\"}", $3}');
+done <<< "$z"
+
+# RAM Usage
+while read -r line
+do
+    mem=$(awk '{print "pgw_mem_usage{process=\""$11"\", pid=\""$2"\"}", $4}');
+done <<< "$z"
+
+# Process count
+procs=$(ps aux | wc -l)
+proc_count="pgw_process_count $procs"
+
+# Pinger
+google_rtt=$(fping -C1 -q "google.com" 2>&1 | cut -d ' ' -f 3)
+cloudflare_rtt=$(fping -C1 -q "cloudflare.com" 2>&1 | cut -d ' ' -f 3)
+twitter_rtt=$(fping -C1 -q "twitter.com" 2>&1 | cut -d ' ' -f 3)
+
+# Metrics are pushed to PGW
+curl -X POST -H  "Content-Type: text/plain" --data "$cpu$newline" http://localhost:9091/metrics/job/top/instance/machine
+curl -X POST -H  "Content-Type: text/plain" --data "$mem$newline" http://localhost:9091/metrics/job/top/instance/machine
+curl -X POST -H  "Content-Type: text/plain" --data "$proc_count$newline" http://localhost:9091/metrics/job/top/instance/machine
+
+cat << EOF | curl --data-binary @- http://localhost:9091/metrics/job/top/instance/machine
+pgw_pinger{source="google"} $google_rtt
+pgw_pinger{source="cloudflare"} $cloudflare_rtt
+pgw_pinger{source="twitter"} $twitter_rtt
+EOF

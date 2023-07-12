@@ -1,0 +1,12 @@
+[Unit]
+Description=Handcrafted exporter using PGW and script magic
+After=network-online.target
+
+[Service]
+User=pushgateway
+ExecStart=/usr/local/bin/pgw_artisanal_exporter
+LogLevelMax=5
+SyslogLevel=6
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer to run pkgupdates every 5m
+
+[Timer]
+OnUnitInactiveSec=30m
+Unit=pgw_pkgs.service
+
+[Install]
+WantedBy=timers.target

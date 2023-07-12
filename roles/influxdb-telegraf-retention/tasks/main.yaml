@@ -1,0 +1,13 @@
+- name: Create 2 week retention policy
+  community.general.influxdb_retention_policy:
+      ssl: true
+      validate_certs: false
+      username: admin
+      password: password
+      database_name: telegraf
+      policy_name: autogen
+      duration: 2w
+      replication: 1
+      shard_group_duration: 6h
+      state: present
+      
